@@ -1,9 +1,9 @@
 spring:
   application:
-    name: 'book'
+    name: book
   profiles:
-    active:
-    - default
+    active: default
   cloud:
     config:
-      url: http://localhost:8888
+      name: book
+      uri: http://localhost:8888
