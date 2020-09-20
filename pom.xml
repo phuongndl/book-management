@@ -52,12 +52,6 @@
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
 		
-		<!-- OpenFeign - Ribbon -->
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-openfeign</artifactId>
-		</dependency>
-		
 		<!-- Hystrix - Fallback and Circuit Breaker -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -123,10 +117,11 @@
 			<version>2.1.5</version>
 		</dependency>
 		
-		<!-- OpenFeign - Ribbon -->
+		<!-- LogStash -->
 		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-openfeign</artifactId>
+			<groupId>net.logstash.logback</groupId>
+			<artifactId>logstash-logback-encoder</artifactId>
+			<version>6.4</version>
 		</dependency>
 		
 		<!-- Spring Actuator -->

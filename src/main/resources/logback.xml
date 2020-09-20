@@ -1,23 +1,69 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+	
 	<include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{5} - %msg%n</pattern>
-    </encoder>
-  </appender>
-  
-  <appender name="PAPERTRAIL" class="ch.qos.logback.classic.net.SyslogAppender">
-	  <syslogHost>logs2.papertrailapp.com</syslogHost>
-	  <port>31965</port>
-	  <facility>USER</facility>
-	  <suffixPattern>%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}</suffixPattern>
-	</appender>
+    <springProperty scope="context" name="application_name" source="spring.application.name"/>
+    <springProperty scope="context" name="logstash-server" source="logstash.server"/>
+    <springProperty scope="context" name="logstash-port" source="logstash.port"/>
+    <springProperty scope="context" name="environment" source="spring.profiles.active"/>
+    <property name="LOG_FILE" value="${LOG_PATH:-${java.io.tmpdir:-/tmp}}/${application_name}.log"/>
+    <property name="LOG_FILE_ARCHIVE" value="${LOG_PATH:-${java.io.tmpdir:-/tmp}}/archive/"/>
+    
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </layout>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_FILE_ARCHIVE}-%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <maxHistory>${LOG_FILE_MAX_HISTORY:-0}</maxHistory>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${LOG_FILE_MAX_SIZE:-10MB}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+    </appender>
 
-  <root level="INFO">
-    <appender-ref ref="STDOUT" />
-    <appender-ref ref="PAPERTRAIL" />
-  </root>
-  
+    <appender name="CONSOLE_LOGSTASH" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"></encoder>
+    </appender>
+    
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE"/>
+    </appender>
+	    
+	<springProfile name="default">
+		<logger name="org.springframework" level="INFO" additivity="false">
+			<appender-ref ref="CONSOLE"/>
+			<appender-ref ref="ASYNC_FILE"/>
+	    </logger>
+		<logger name="com.microservice" level="DEBUG" additivity="false">
+			<appender-ref ref="CONSOLE"/>
+			<appender-ref ref="ASYNC_FILE"/>
+	    </logger>
+	</springProfile>
+		
+	<springProfile name="test">
+	    <appender name="LOGSTASH_TCP" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+	        <param name="Encoding" value="UTF-8"/>
+	        <remoteHost>${logstash-server}</remoteHost>
+	        <port>${logstash-port}</port>
+	        <!-- encoder is required -->
+	        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+	    </appender>
+	
+	    <appender name="ASYNC_LOGSTASH_TCP" class="ch.qos.logback.classic.AsyncAppender">
+	        <appender-ref ref="LOGSTASH_TCP"/>
+	    </appender>
+	
+	    <logger name="org.springframework" level="INFO" additivity="false">
+			<appender-ref ref="CONSOLE"/>
+			<appender-ref ref="ASYNC_LOGSTASH_TCP"/>
+	    </logger>
+		<logger name="com.microservice" level="DEBUG" additivity="false">
+			<appender-ref ref="CONSOLE"/>
+			<appender-ref ref="ASYNC_LOGSTASH_TCP"/>
+	    </logger>
+	</springProfile>
 </configuration>
