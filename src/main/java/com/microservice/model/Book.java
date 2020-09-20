@@ -17,7 +17,6 @@ public class Book extends Auditable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@NotBlank
 	private String name;
 
 	private String description;
