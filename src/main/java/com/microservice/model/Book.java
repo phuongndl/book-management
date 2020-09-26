@@ -1,7 +1,6 @@
 package com.microservice.model;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 
 import com.microservice.payload.BookDto;
 
